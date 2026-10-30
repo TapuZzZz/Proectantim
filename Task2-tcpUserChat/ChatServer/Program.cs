@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
-using Npgsql;
 
 using ChatServer.Handlers;
 using ChatServer.Protocol;
@@ -20,7 +19,7 @@ class Program
     public static async Task Main()
     {
         _listener.Start();
-        Console.WriteLine($"Server started on port {ServerPort}...");
+        Console.WriteLine($"Server started on port {ServerPort}.......");
 
         while(true)
         {
@@ -36,6 +35,9 @@ class Program
         var endPoint = client.Client.RemoteEndPoint;
         Console.WriteLine($"[+] Client connected: {endPoint}");
 
+        // יצירת סשן חדש הייחודי ללקוח הזה בלבד
+        var session = new UserSession();
+
         try
         {
             using (client)
@@ -47,11 +49,13 @@ class Program
 
                     if (request == null)
                     {
-                        break; 
+                        break;
                     }
 
-                    Console.WriteLine($"[+] Action received: {request.Action}");
-                    await RequestHandler.HandleRequestAsync(request, stream);
+                    Console.WriteLine($"[+] Action received: {request.Action} | Authenticated User: {session.Username ?? "Guest"}");
+                    
+                    // מעבירים את ה-session המשותף ללולאה הזו
+                    await RequestHandler.HandleRequestAsync(request, stream, session);
                 }
             }
         }
@@ -65,7 +69,7 @@ class Program
         }
         finally
         {
-            Console.WriteLine($"[-] Cleaned up resources for client: {endPoint}");
+            Console.WriteLine($"[-] Cleaned up resources for client: {endPoint} (User: {session.Username ?? "Guest"})");
         }
     }
 
