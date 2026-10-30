@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+namespace ChatServer.Helpers;
+
 public static class JsonConverterHelper
 {
     // המרת אובייקט לגייסון

@@ -1,3 +1,5 @@
+namespace ChatServer.Protocol;
+
 public enum ActionType
 {
     Register,

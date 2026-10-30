@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using Npgsql;
 
+using ChatServer.Handlers;
+using ChatServer.Protocol;
+using ChatServer.Payloads;
+using ChatServer.Helpers;
+
+namespace ChatServer.Program;
 
 class Program
 {

@@ -1,3 +1,5 @@
+namespace ChatServer.Protocol;
+
 public class NetworkResponse<T>
 {
     public bool Success { get; set; }

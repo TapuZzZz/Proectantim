@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 using Npgsql;
 using BCrypt.Net;
 
+using ChatServer.Protocol;
+using ChatServer.Payloads;
+using ChatServer.Helpers;
+
+namespace ChatServer.Handlers;
+
 public static class RequestHandler
 {
     private const string DbConnectionString = "Host=ep-lively-darkness-bavzh4f1.c-8.eu-central-1.aws.neon.tech;Database=neondb;Username=neondb_owner;Password=npg_Gs8hbWM7tByj;SSL Mode=Require;";
