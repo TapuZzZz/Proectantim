@@ -2,8 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Electron</title>
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <title>Chat</title>
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
@@ -11,7 +10,21 @@
   </head>
 
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <h3>Login</h3>
+    <input id="username" placeholder="Username" />
+    <input id="password" type="password" placeholder="Password" />
+    <button id="login-btn">Login</button>
+    <button id="register-btn">Register</button>
+    <p id="result"></p>
+
+    <hr />
+
+    <h3>Chat</h3>
+    <input id="target-id" type="number" placeholder="Target user ID" />
+    <input id="content" placeholder="Message" />
+    <button id="send-btn">Send</button>
+    <ul id="messages"></ul>
+
+    <script type="module" src="./src/renderer.ts"></script>
   </body>
 </html>
