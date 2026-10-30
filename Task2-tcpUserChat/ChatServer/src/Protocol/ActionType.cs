@@ -6,5 +6,6 @@ public enum ActionType
     Login,
     SendMessage,
     CreateGroup,
-    AddGroupMember
+    AddGroupMember,
+    GetChatHistory
 }

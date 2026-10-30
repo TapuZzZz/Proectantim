@@ -52,32 +52,57 @@ public static class SendMessageHandler
         }
 
         // 3. הפצה בזמן אמת (Real-Time Broadcast)
-        if (!messageData.IsGroup)
+        if (messageData.IsGroup)
         {
-            // שליפת ה-Stream של הנמען מהמילון המרכזי
-            var recipientStream = ClientManager.GetClientStream(messageData.TargetId);
+            // שליפת כל חברי הקבוצה מה-DB
+            var memberIds = await GroupService.GetGroupMemberIdsAsync(messageData.TargetId);
 
+            var groupMessage = new
+            {
+                GroupId = messageData.TargetId,
+                FromUserId = session.UserId.Value,
+                FromUsername = session.Username,
+                Content = messageData.Content,
+                IsGroup = true,
+                SentAt = DateTime.UtcNow
+            };
+
+            string notificationJson = JsonConverterHelper.Serialize(groupMessage);
+            byte[] notificationBytes = Encoding.UTF8.GetBytes(notificationJson);
+
+            foreach (int memberId in memberIds)
+            {
+                // לא שולחים שוב לשולח עצמו
+                if (memberId == session.UserId.Value) continue;
+
+                var memberStream = ClientManager.GetClientStream(memberId);
+                if (memberStream != null)
+                {
+                    await memberStream.WriteAsync(notificationBytes, 0, notificationBytes.Length);
+                    Console.WriteLine($"[Real-Time Group] Message delivered live to User ID {memberId} in Group {messageData.TargetId}");
+                }
+            }
+        }
+        else
+        {
+            // הודעה פרטית (כפי שהיה מוגדר קודם)
+            var recipientStream = ClientManager.GetClientStream(messageData.TargetId);
             if (recipientStream != null)
             {
-                // הכנת ה-Notification שיישלח ישירות לנמען
                 var incomingMessage = new
                 {
                     FromUserId = session.UserId.Value,
                     FromUsername = session.Username,
                     Content = messageData.Content,
+                    IsGroup = false,
                     SentAt = DateTime.UtcNow
                 };
 
                 string notificationJson = JsonConverterHelper.Serialize(incomingMessage);
                 byte[] notificationBytes = Encoding.UTF8.GetBytes(notificationJson);
 
-                // דחיפת ההודעה בזמן אמת לנמען
                 await recipientStream.WriteAsync(notificationBytes, 0, notificationBytes.Length);
                 Console.WriteLine($"[Real-Time] Message delivered live to User ID {messageData.TargetId}");
-            }
-            else
-            {
-                Console.WriteLine($"[Real-Time] User ID {messageData.TargetId} is offline. Message saved in DB only.");
             }
         }
 

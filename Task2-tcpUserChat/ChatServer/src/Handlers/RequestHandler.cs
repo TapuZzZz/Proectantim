@@ -25,6 +25,18 @@ public static class RequestHandler
                 await SendMessageHandler.HandleAsync(request.Payload, stream, session);
                 break;
 
+            case ActionType.GetChatHistory:
+                await GetChatHistoryHandler.HandleAsync(request.Payload, stream, session);
+                break;
+
+            case ActionType.CreateGroup:
+                await CreateGroupHandler.HandleAsync(request.Payload, stream, session);
+                break;
+
+            case ActionType.AddGroupMember:
+                await AddGroupMemberHandler.HandleAsync(request.Payload, stream, session);
+                break;
+
             default:
                 Console.WriteLine($"[!] Action not supported yet: {request.Action}");
                 break;

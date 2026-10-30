@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Npgsql;
 
 namespace ChatServer.Services;
+using ChatServer.Payloads;
 
 public static class MessageService
 {
@@ -32,5 +33,63 @@ public static class MessageService
             Console.WriteLine($"[!] Database error saving message: {ex.Message}");
             return false;
         }
+    }
+
+    public static async Task<List<ChatMessageDto>> GetChatHistoryAsync(int currentUserId, int targetId, bool isGroup)
+    {
+        var messages = new List<ChatMessageDto>();
+
+        try
+        {
+            using var conn = new NpgsqlConnection(DbConnectionString);
+            await conn.OpenAsync();
+
+            string sql;
+
+            if (isGroup)
+            {
+                // שליפת הודעות קבוצה
+                sql = @"SELECT id, sender_id, target_id, is_group, content, created_at 
+                        FROM messages 
+                        WHERE target_id = @t AND is_group = TRUE 
+                        ORDER BY created_at ASC LIMIT 50";
+            }
+            else
+            {
+                // שליפת שיחה פרטית (הודעות שנשלחו מ-A ל-B או מ-B ל-A)
+                sql = @"SELECT id, sender_id, target_id, is_group, content, created_at 
+                        FROM messages 
+                        WHERE is_group = FALSE AND 
+                              ((sender_id = @u AND target_id = @t) OR (sender_id = @t AND target_id = @u)) 
+                        ORDER BY created_at ASC LIMIT 50";
+            }
+
+            using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("t", targetId);
+            if (!isGroup)
+            {
+                cmd.Parameters.AddWithValue("u", currentUserId);
+            }
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                messages.Add(new ChatMessageDto
+                {
+                    Id = reader.GetInt32(0),
+                    SenderId = reader.GetInt32(1),
+                    TargetId = reader.GetInt32(2),
+                    IsGroup = reader.GetBoolean(3),
+                    Content = reader.GetString(4),
+                    CreatedAt = reader.GetDateTime(5)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[!] Error fetching chat history: {ex.Message}");
+        }
+
+        return messages;
     }
 }
