@@ -13,11 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SerialSender")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-<<<<<<< HEAD
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+282569384d7484ff562e2a4f57f9667627b44b4e")]
-=======
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9325f44d4443e1cf93ba4546c70ef0fe03529a8d")]
->>>>>>> 75f4e72 (Update assembly informational version and cache files for SerialReceiver, SerialSender, and ChatServer)
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6167afb6776c24c367a22abb4011015cb751217e")]
 [assembly: System.Reflection.AssemblyProductAttribute("SerialSender")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SerialSender")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
