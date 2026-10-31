@@ -2,7 +2,7 @@ namespace ChatServer;
 
 public enum ActionType
 {
-    Unknown = 0,
+    Unknown,
     Login,
     Register,
     SendMessage

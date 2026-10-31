@@ -11,15 +11,17 @@ public class ClientConnection
     private readonly NetworkStream _stream;
     private readonly StreamReader _reader;
     private readonly RequestRouter _router;
+    private readonly OnlineUsers _onlineUsers;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly string _endPoint;
 
     private int _userId = -1;   // -1 = עוד לא התחבר
 
-    public ClientConnection(TcpClient client, RequestRouter router)
+    public ClientConnection(TcpClient client, RequestRouter router, OnlineUsers onlineUsers)
     {
         _client = client;
         _router = router;
+        _onlineUsers = onlineUsers;
         _stream = client.GetStream();
         _reader = new StreamReader(_stream, Encoding.UTF8);
         _jsonOptions = CreateJsonOptions();
@@ -88,13 +90,14 @@ public class ClientConnection
         return response;
     }
 
-    // אם Login או Register הצליחו, זוכרים מי המשתמש
-    private void SaveLoginIfSucceeded(Response response)
+    // מוסיף לקוח מחובר לרשימה של הלקוחות ושומר את האיידי שלו
+        private void SaveLoginIfSucceeded(Response response)
     {
         if (response.Success && IsAuthAction(response.Action))
         {
             _userId = response.UserId;
-            Console.WriteLine($"[+] User {_userId} logged in from {_endPoint}");
+            _onlineUsers.Add(_userId, this);
+            Console.WriteLine($"[+] User {_userId} logged in from {_endPoint} (online: {_onlineUsers.Count()})");
         }
     }
 
@@ -145,8 +148,13 @@ public class ClientConnection
 
     private void Close()
     {
+        if (IsLoggedIn())
+        {
+            _onlineUsers.Remove(_userId, this);
+        }
+
         _reader.Dispose();
         _client.Dispose();
-        Console.WriteLine($"[-] Client disconnected: {_endPoint}");
+        Console.WriteLine($"[-] Client disconnected: {_endPoint} (online: {_onlineUsers.Count()})");
     }
 }
