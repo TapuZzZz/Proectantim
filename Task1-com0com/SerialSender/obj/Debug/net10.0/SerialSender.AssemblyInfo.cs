@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SerialSender")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6167afb6776c24c367a22abb4011015cb751217e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+539a3bfad84a46936f32bbbc5c4b7cf0d0fb86d9")]
 [assembly: System.Reflection.AssemblyProductAttribute("SerialSender")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SerialSender")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

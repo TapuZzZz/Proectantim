@@ -13,9 +13,9 @@
 /home/artyomkiselhof/Desktop/Proectantim/Task2-tcpUserChat/ChatServer/obj/Debug/net10.0/ChatServer.pdb
 /home/artyomkiselhof/Desktop/Proectantim/Task2-tcpUserChat/ChatServer/obj/Debug/net10.0/ChatServer.genruntimeconfig.cache
 /home/artyomkiselhof/Desktop/Proectantim/Task2-tcpUserChat/ChatServer/obj/Debug/net10.0/ref/ChatServer.dll
+/home/artyomkiselhof/Desktop/Proectantim/Task2-tcpUserChat/ChatServer/bin/Debug/net10.0/BCrypt-Net-Next.dll
 /home/artyomkiselhof/Desktop/Proectantim/Task2-tcpUserChat/ChatServer/bin/Debug/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
 /home/artyomkiselhof/Desktop/Proectantim/Task2-tcpUserChat/ChatServer/bin/Debug/net10.0/Microsoft.Extensions.Logging.Abstractions.dll
 /home/artyomkiselhof/Desktop/Proectantim/Task2-tcpUserChat/ChatServer/bin/Debug/net10.0/Npgsql.dll
 /home/artyomkiselhof/Desktop/Proectantim/Task2-tcpUserChat/ChatServer/obj/Debug/net10.0/ChatServer.csproj.AssemblyReference.cache
 /home/artyomkiselhof/Desktop/Proectantim/Task2-tcpUserChat/ChatServer/obj/Debug/net10.0/ChatServer.csproj.Up2Date
-/home/artyomkiselhof/Desktop/Proectantim/Task2-tcpUserChat/ChatServer/bin/Debug/net10.0/BCrypt-Net-Next.dll
