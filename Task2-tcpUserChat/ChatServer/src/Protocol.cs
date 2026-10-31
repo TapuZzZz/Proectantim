@@ -8,6 +8,7 @@ public enum ActionType
     SendMessage,
     NewMessage,
     CreateGroup,
+    AddGroupMember,
 }
 
 public class Request
@@ -15,9 +16,12 @@ public class Request
     public ActionType Action { get; set; }
     public string Username { get; set; } = "";
     public string Password { get; set; } = "";
+    public string? SenderName { get; set; }
     public int TargetId { get; set; }
     public string Content { get; set; } = "";
+    public bool IsGroup { get; set; }
     public string GroupName { get; set; } = "";
+    public int GroupId { get; set; }
 }
 
 public class Response
@@ -25,10 +29,12 @@ public class Response
     public ActionType Action { get; set; }
     public bool Success { get; set; }
     public string Message { get; set; } = "";
+    public string? SenderName { get; set; }
     public int UserId { get; set; }
     public int SenderId { get; set; }
     public string? Content { get; set; }
     public int GroupId { get; set; }
+
     public static Response Ok(ActionType action, string message)
     {
         Response response = new Response();

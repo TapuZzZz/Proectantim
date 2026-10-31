@@ -79,15 +79,16 @@ public class Database
         }
     }
 
-    public async Task SaveMessageAsync(int senderId, int targetId, string content)
+    public async Task SaveMessageAsync(int senderId, int targetId, bool isGroup, string content)
     {
-        string sql = "INSERT INTO messages (sender_id, target_id, is_group, content) VALUES (@sender, @target, false, @content)";
+        string sql = "INSERT INTO messages (sender_id, target_id, is_group, content) VALUES (@sender, @target, @isGroup, @content)";
 
         using (NpgsqlConnection connection = await _dataSource.OpenConnectionAsync())
         using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
         {
             command.Parameters.AddWithValue("sender", senderId);
             command.Parameters.AddWithValue("target", targetId);
+            command.Parameters.AddWithValue("isGroup", isGroup);
             command.Parameters.AddWithValue("content", content);
 
             await command.ExecuteNonQueryAsync();
@@ -121,6 +122,66 @@ public class Database
             command.Parameters.AddWithValue("user", userId);
 
             await command.ExecuteNonQueryAsync();
+        }
+    }
+
+    // האם המשתמש חבר בקבוצה
+    public async Task<bool> IsGroupMemberAsync(int groupId, int userId)
+    {
+        string sql = "SELECT COUNT(*) FROM group_members WHERE group_id = @group AND user_id = @user";
+
+        using (NpgsqlConnection connection = await _dataSource.OpenConnectionAsync())
+        using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("group", groupId);
+            command.Parameters.AddWithValue("user", userId);
+
+            object? result = await command.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
+    }
+
+    // מחזיר את ה-id של כל חברי הקבוצה
+    public async Task<List<int>> GetGroupMemberIdsAsync(int groupId)
+    {
+        string sql = "SELECT user_id FROM group_members WHERE group_id = @group";
+        List<int> memberIds = new List<int>();
+
+        using (NpgsqlConnection connection = await _dataSource.OpenConnectionAsync())
+        using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("group", groupId);
+
+            using (NpgsqlDataReader reader = await command.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    memberIds.Add(reader.GetInt32(0));
+                }
+            }
+        }
+
+        return memberIds;
+    }
+
+    // מחזיר את שם המשתמש לפי ה-id שלו
+    public async Task<string> GetUsernameAsync(int userId)
+    {
+        string sql = "SELECT username FROM users WHERE id = @id";
+
+        using (NpgsqlConnection connection = await _dataSource.OpenConnectionAsync())
+        using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("id", userId);
+
+            object? result = await command.ExecuteScalarAsync();
+
+            if (result == null)
+            {
+                return "";
+            }
+
+            return (string)result;
         }
     }
 }

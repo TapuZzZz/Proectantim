@@ -27,6 +27,9 @@ public class RequestRouter
             case ActionType.CreateGroup:
                 return await HandleCreateGroupAsync(request, userId);
 
+            case ActionType.AddGroupMember:
+                return await HandleAddGroupMemberAsync(request, userId);
+
             default:
                 return Response.Fail(request.Action, "Unknown action");
         }
@@ -67,6 +70,16 @@ public class RequestRouter
             return Response.Fail(request.Action, "Empty message");
         }
 
+        if (request.IsGroup)
+        {
+            return await SendGroupMessageAsync(request, senderId);
+        }
+
+        return await SendPrivateMessageAsync(request, senderId);
+    }
+
+    private async Task<Response> SendPrivateMessageAsync(Request request, int senderId)
+    {
         bool targetExists = await _database.UserExistsAsync(request.TargetId);
 
         if (!targetExists)
@@ -74,10 +87,50 @@ public class RequestRouter
             return Response.Fail(request.Action, "User not found");
         }
 
-        await _database.SaveMessageAsync(senderId, request.TargetId, request.Content);
-        await DeliverAsync(senderId, request.TargetId, request.Content);
+        await _database.SaveMessageAsync(senderId, request.TargetId, false, request.Content);
+
+        Response message = await CreateNewMessageAsync(senderId, request.Content, 0);
+        await DeliverAsync(request.TargetId, message);
 
         return Response.Ok(request.Action, "Message sent");
+    }
+
+    private async Task<Response> SendGroupMessageAsync(Request request, int senderId)
+    {
+        int groupId = request.TargetId;
+        bool isMember = await _database.IsGroupMemberAsync(groupId, senderId);
+
+        if (!isMember)
+        {
+            return Response.Fail(request.Action, "You are not in this group");
+        }
+
+        await _database.SaveMessageAsync(senderId, groupId, true, request.Content);
+
+        Response message = await CreateNewMessageAsync(senderId, request.Content, groupId);
+        List<int> memberIds = await _database.GetGroupMemberIdsAsync(groupId);
+
+        foreach (int memberId in memberIds)
+        {
+            if (memberId != senderId)
+            {
+                await DeliverAsync(memberId, message);
+            }
+        }
+
+        return Response.Ok(request.Action, "Message sent");
+    }
+
+    private async Task<Response> CreateNewMessageAsync(int senderId, string content, int groupId)
+    {
+        string senderName = await _database.GetUsernameAsync(senderId);
+
+        Response message = Response.Ok(ActionType.NewMessage, "New message");
+        message.SenderId = senderId;
+        message.SenderName = senderName;
+        message.Content = content;
+        message.GroupId = groupId;
+        return message;
     }
 
     private async Task<Response> HandleCreateGroupAsync(Request request, int userId)
@@ -95,8 +148,38 @@ public class RequestRouter
         return response;
     }
 
+    private async Task<Response> HandleAddGroupMemberAsync(Request request, int userId)
+    {
+        bool isMember = await _database.IsGroupMemberAsync(request.GroupId, userId);
+
+        if (!isMember)
+        {
+            return Response.Fail(request.Action, "You are not in this group");
+        }
+
+        bool targetExists = await _database.UserExistsAsync(request.TargetId);
+
+        if (!targetExists)
+        {
+            return Response.Fail(request.Action, "User not found");
+        }
+
+        bool alreadyMember = await _database.IsGroupMemberAsync(request.GroupId, request.TargetId);
+
+        if (alreadyMember)
+        {
+            return Response.Fail(request.Action, "User already in group");
+        }
+
+        await _database.AddGroupMemberAsync(request.GroupId, request.TargetId);
+
+        Response response = Response.Ok(request.Action, "Member added");
+        response.GroupId = request.GroupId;
+        return response;
+    }
+
     // שולח את ההודעה לנמען, אם הוא מחובר עכשיו
-    private async Task DeliverAsync(int senderId, int targetId, string content)
+    private async Task DeliverAsync(int targetId, Response message)
     {
         ClientConnection? target = _onlineUsers.Find(targetId);
 
@@ -104,10 +187,6 @@ public class RequestRouter
         {
             return;
         }
-
-        Response message = Response.Ok(ActionType.NewMessage, "New message");
-        message.SenderId = senderId;
-        message.Content = content;
 
         try
         {
