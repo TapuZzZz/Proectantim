@@ -64,4 +64,33 @@ public class Database
             return Convert.ToInt32(result);
         }
     }
+
+    public async Task<bool> UserExistsAsync(int userId)
+    {
+        string sql = "SELECT COUNT(*) FROM users WHERE id = @id";
+
+        using (NpgsqlConnection connection = await _dataSource.OpenConnectionAsync())
+        using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("id", userId);
+
+            object? result = await command.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
+    }
+
+    public async Task SaveMessageAsync(int senderId, int targetId, string content)
+    {
+        string sql = "INSERT INTO messages (sender_id, target_id, is_group, content) VALUES (@sender, @target, false, @content)";
+
+        using (NpgsqlConnection connection = await _dataSource.OpenConnectionAsync())
+        using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("sender", senderId);
+            command.Parameters.AddWithValue("target", targetId);
+            command.Parameters.AddWithValue("content", content);
+
+            await command.ExecuteNonQueryAsync();
+        }
+    }
 }

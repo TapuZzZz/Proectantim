@@ -14,8 +14,8 @@ public class Server
     {
         _port = port;
         _listener = new TcpListener(IPAddress.Any, port);
-        _router = new RequestRouter(database);
         _onlineUsers = new OnlineUsers();
+        _router = new RequestRouter(database, _onlineUsers);
     }
 
     public async Task RunAsync()

@@ -3,10 +3,12 @@ namespace ChatServer;
 public class RequestRouter
 {
     private readonly Database _database;
+    private readonly OnlineUsers _onlineUsers;
 
-    public RequestRouter(Database database)
+    public RequestRouter(Database database, OnlineUsers onlineUsers)
     {
         _database = database;
+        _onlineUsers = onlineUsers;
     }
 
     public async Task<Response> RouteAsync(Request request, int userId)
@@ -20,7 +22,7 @@ public class RequestRouter
                 return await HandleRegisterAsync(request);
 
             case ActionType.SendMessage:
-                return HandleSendMessage(request, userId);
+                return await HandleSendMessageAsync(request, userId);
 
             default:
                 return Response.Fail(request.Action, "Unknown action");
@@ -55,10 +57,48 @@ public class RequestRouter
         return CreateLoggedInResponse(request.Action, userId);
     }
 
-    private Response HandleSendMessage(Request request, int userId)
+    private async Task<Response> HandleSendMessageAsync(Request request, int senderId)
     {
-        // TODO
-        return Response.Fail(request.Action, "Not implemented");
+        if (string.IsNullOrEmpty(request.Content))
+        {
+            return Response.Fail(request.Action, "Empty message");
+        }
+
+        bool targetExists = await _database.UserExistsAsync(request.TargetId);
+
+        if (!targetExists)
+        {
+            return Response.Fail(request.Action, "User not found");
+        }
+
+        await _database.SaveMessageAsync(senderId, request.TargetId, request.Content);
+        await DeliverAsync(senderId, request.TargetId, request.Content);
+
+        return Response.Ok(request.Action, "Message sent");
+    }
+
+    // שולח את ההודעה לנמען, אם הוא מחובר עכשיו
+    private async Task DeliverAsync(int senderId, int targetId, string content)
+    {
+        ClientConnection? target = _onlineUsers.Find(targetId);
+
+        if (target == null)
+        {
+            return;
+        }
+
+        Response message = Response.Ok(ActionType.NewMessage, "New message");
+        message.SenderId = senderId;
+        message.Content = content;
+
+        try
+        {
+            await target.SendResponseAsync(message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[!] Could not deliver to user {targetId}: {ex.Message}");
+        }
     }
 
     private bool IsMissingCredentials(Request request)

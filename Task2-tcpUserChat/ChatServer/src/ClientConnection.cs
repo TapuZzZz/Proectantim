@@ -17,6 +17,8 @@ public class ClientConnection
 
     private int _userId = -1;   // -1 = עוד לא התחבר
 
+    private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
+
     public ClientConnection(TcpClient client, RequestRouter router, OnlineUsers onlineUsers)
     {
         _client = client;
@@ -130,11 +132,20 @@ public class ClientConnection
         }
     }
 
-    private async Task SendResponseAsync(Response response)
+    public async Task SendResponseAsync(Response response)
     {
         string json = JsonSerializer.Serialize(response, _jsonOptions);
         byte[] bytes = Encoding.UTF8.GetBytes(json + "\n");
-        await _stream.WriteAsync(bytes, 0, bytes.Length);
+
+        await _writeLock.WaitAsync();
+        try
+        {
+            await _stream.WriteAsync(bytes, 0, bytes.Length);
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
     }
 
     private JsonSerializerOptions CreateJsonOptions()
@@ -143,6 +154,7 @@ public class ClientConnection
         options.PropertyNameCaseInsensitive = true;
         options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+        options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
         return options;
     }
 
