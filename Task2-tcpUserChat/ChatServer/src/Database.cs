@@ -93,4 +93,34 @@ public class Database
             await command.ExecuteNonQueryAsync();
         }
     }
+
+    // יוצר קבוצה חדשה ומחזיר את ה-id שלה
+    public async Task<int> CreateGroupAsync(string name)
+    {
+        string sql = "INSERT INTO groups (name) VALUES (@name) RETURNING id";
+
+        using (NpgsqlConnection connection = await _dataSource.OpenConnectionAsync())
+        using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("name", name);
+
+            object? result = await command.ExecuteScalarAsync();
+            return Convert.ToInt32(result);
+        }
+    }
+
+    // מוסיף משתמש לקבוצה
+    public async Task AddGroupMemberAsync(int groupId, int userId)
+    {
+        string sql = "INSERT INTO group_members (group_id, user_id) VALUES (@group, @user)";
+
+        using (NpgsqlConnection connection = await _dataSource.OpenConnectionAsync())
+        using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("group", groupId);
+            command.Parameters.AddWithValue("user", userId);
+
+            await command.ExecuteNonQueryAsync();
+        }
+    }
 }

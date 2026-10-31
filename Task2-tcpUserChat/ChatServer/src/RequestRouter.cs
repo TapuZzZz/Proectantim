@@ -24,6 +24,9 @@ public class RequestRouter
             case ActionType.SendMessage:
                 return await HandleSendMessageAsync(request, userId);
 
+            case ActionType.CreateGroup:
+                return await HandleCreateGroupAsync(request, userId);
+
             default:
                 return Response.Fail(request.Action, "Unknown action");
         }
@@ -75,6 +78,21 @@ public class RequestRouter
         await DeliverAsync(senderId, request.TargetId, request.Content);
 
         return Response.Ok(request.Action, "Message sent");
+    }
+
+    private async Task<Response> HandleCreateGroupAsync(Request request, int userId)
+    {
+        if (string.IsNullOrEmpty(request.GroupName))
+        {
+            return Response.Fail(request.Action, "Missing group name");
+        }
+
+        int groupId = await _database.CreateGroupAsync(request.GroupName);
+        await _database.AddGroupMemberAsync(groupId, userId);
+
+        Response response = Response.Ok(request.Action, "Group created");
+        response.GroupId = groupId;
+        return response;
     }
 
     // שולח את ההודעה לנמען, אם הוא מחובר עכשיו

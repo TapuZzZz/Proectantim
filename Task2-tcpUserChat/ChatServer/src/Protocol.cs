@@ -6,7 +6,8 @@ public enum ActionType
     Login,
     Register,
     SendMessage,
-    NewMessage      // רק מהשרת ללקוח: הודעה נכנסת
+    NewMessage,
+    CreateGroup,
 }
 
 public class Request
@@ -16,6 +17,7 @@ public class Request
     public string Password { get; set; } = "";
     public int TargetId { get; set; }
     public string Content { get; set; } = "";
+    public string GroupName { get; set; } = "";
 }
 
 public class Response
@@ -26,7 +28,7 @@ public class Response
     public int UserId { get; set; }
     public int SenderId { get; set; }
     public string? Content { get; set; }
-
+    public int GroupId { get; set; }
     public static Response Ok(ActionType action, string message)
     {
         Response response = new Response();
