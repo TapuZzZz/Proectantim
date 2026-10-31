@@ -30,6 +30,15 @@ public class RequestRouter
             case ActionType.AddGroupMember:
                 return await HandleAddGroupMemberAsync(request, userId);
 
+            case ActionType.GetUsers:
+                return await HandleGetUsersAsync(request);
+            
+            case ActionType.GetMyGroups:
+                return await HandleGetMyGroupsAsync(request, userId);
+
+            case ActionType.GetHistory:
+                return await HandleGetHistoryAsync(request, userId);
+
             default:
                 return Response.Fail(request.Action, "Unknown action");
         }
@@ -207,6 +216,61 @@ public class RequestRouter
     {
         Response response = Response.Ok(action, "Logged in");
         response.UserId = userId;
+        return response;
+    }
+
+    private async Task<Response> HandleGetUsersAsync(Request request)
+    {
+        List<UserInfo> users = await _database.GetAllUsersAsync();
+
+        Response response = Response.Ok(request.Action, "Users list");
+        response.Users = users;
+        return response;
+    }
+
+    private async Task<Response> HandleGetMyGroupsAsync(Request request, int userId)
+    {
+        List<GroupInfo> groups = await _database.GetUserGroupsAsync(userId);
+
+        Response response = Response.Ok(request.Action, "Groups list");
+        response.Groups = groups;
+        return response;
+    }
+
+    private async Task<Response> HandleGetHistoryAsync(Request request, int userId)
+    {
+        if (request.IsGroup)
+        {
+            return await GetGroupHistoryAsync(request, userId);
+        }
+
+        return await GetPrivateHistoryAsync(request, userId);
+    }
+
+    private async Task<Response> GetPrivateHistoryAsync(Request request, int userId)
+    {
+        List<MessageInfo> messages = await _database.GetPrivateHistoryAsync(userId, request.TargetId);
+
+        Response response = Response.Ok(request.Action, "History");
+        response.Messages = messages;
+        return response;
+    }
+
+    private async Task<Response> GetGroupHistoryAsync(Request request, int userId)
+    {
+        int groupId = request.TargetId;
+        bool isMember = await _database.IsGroupMemberAsync(groupId, userId);
+
+        if (!isMember)
+        {
+            return Response.Fail(request.Action, "You are not in this group");
+        }
+
+        List<MessageInfo> messages = await _database.GetGroupHistoryAsync(groupId);
+
+        Response response = Response.Ok(request.Action, "History");
+        response.GroupId = groupId;
+        response.Messages = messages;
         return response;
     }
 }

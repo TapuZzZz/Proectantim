@@ -9,6 +9,29 @@ public enum ActionType
     NewMessage,
     CreateGroup,
     AddGroupMember,
+    GetUsers,
+    GetMyGroups,
+    GetHistory,
+}
+
+public class UserInfo
+{
+    public int Id { get; set; }
+    public string Username { get; set; } = "";
+}
+
+public class GroupInfo
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+}
+
+public class MessageInfo
+{
+    public int SenderId { get; set; }
+    public string SenderName { get; set; } = "";
+    public string Content { get; set; } = "";
+    public DateTime CreatedAt { get; set; }
 }
 
 public class Request
@@ -29,12 +52,15 @@ public class Response
     public ActionType Action { get; set; }
     public bool Success { get; set; }
     public string Message { get; set; } = "";
-    public string? SenderName { get; set; }
     public int UserId { get; set; }
     public int SenderId { get; set; }
+    public string? SenderName { get; set; }
     public string? Content { get; set; }
     public int GroupId { get; set; }
-
+    public List<UserInfo>? Users { get; set; }
+    public List<GroupInfo>? Groups { get; set; }
+    public List<MessageInfo>? Messages { get; set; }
+    
     public static Response Ok(ActionType action, string message)
     {
         Response response = new Response();
