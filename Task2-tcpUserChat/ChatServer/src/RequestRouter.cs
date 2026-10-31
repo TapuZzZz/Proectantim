@@ -58,7 +58,7 @@ public class RequestRouter
             return Response.Fail(request.Action, "Wrong username or password");
         }
 
-        return CreateLoggedInResponse(request.Action, userId);
+        return CreateLoggedInResponse(request.Action, userId, request.Username);
     }
 
     private async Task<Response> HandleRegisterAsync(Request request)
@@ -69,7 +69,7 @@ public class RequestRouter
         }
 
         int userId = await _database.CreateUserAsync(request.Username, request.Password);
-        return CreateLoggedInResponse(request.Action, userId);
+        return CreateLoggedInResponse(request.Action, userId, request.Username);
     }
 
     private async Task<Response> HandleSendMessageAsync(Request request, int senderId)
@@ -212,10 +212,11 @@ public class RequestRouter
         return string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password);
     }
 
-    private Response CreateLoggedInResponse(ActionType action, int userId)
+    private Response CreateLoggedInResponse(ActionType action, int userId, string username)
     {
         Response response = Response.Ok(action, "Logged in");
         response.UserId = userId;
+        response.Username = username;
         return response;
     }
 

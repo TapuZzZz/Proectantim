@@ -20,7 +20,6 @@ public class Database
         }
     }
 
-    // מחזיר את ה-id של המשתמש, או -1 אם השם או הסיסמה שגויים
     public async Task<int> FindUserIdAsync(string username, string password)
     {
         string sql = "SELECT id, password_hash FROM users WHERE username = @username";
@@ -48,7 +47,6 @@ public class Database
         return -1;
     }
 
-    // יוצר משתמש חדש ומחזיר את ה-id שלו
     public async Task<int> CreateUserAsync(string username, string password)
     {
         string hash = BCrypt.Net.BCrypt.HashPassword(password);
@@ -95,7 +93,6 @@ public class Database
         }
     }
 
-    // יוצר קבוצה חדשה ומחזיר את ה-id שלה
     public async Task<int> CreateGroupAsync(string name)
     {
         string sql = "INSERT INTO groups (name) VALUES (@name) RETURNING id";
@@ -141,7 +138,6 @@ public class Database
         }
     }
 
-    // מחזיר את ה-id של כל חברי הקבוצה
     public async Task<List<int>> GetGroupMemberIdsAsync(int groupId)
     {
         string sql = "SELECT user_id FROM group_members WHERE group_id = @group";
@@ -164,7 +160,6 @@ public class Database
         return memberIds;
     }
 
-    // מחזיר את שם המשתמש לפי ה-id שלו
     public async Task<string> GetUsernameAsync(int userId)
     {
         string sql = "SELECT username FROM users WHERE id = @id";
@@ -206,7 +201,6 @@ public class Database
         return users;
     }
 
-    // מחזיר את כל הקבוצות שהמשתמש חבר בהן
     public async Task<List<GroupInfo>> GetUserGroupsAsync(int userId)
     {
         string sql = "SELECT g.id, g.name FROM groups g " +
@@ -234,7 +228,6 @@ public class Database
         return groups;
     }
 
-    // כל ההודעות הפרטיות בין שני משתמשים, בשני הכיוונים
     public async Task<List<MessageInfo>> GetPrivateHistoryAsync(int userId, int otherId)
     {
         string sql = "SELECT m.sender_id, u.username, m.content, m.created_at FROM messages m " +
@@ -270,7 +263,7 @@ public class Database
         }
     }
 
-    // מריץ שאילתה של הודעות, והופך כל שורה ל-MessageInfo
+    // מריץ שאילתה של הודעות
     private async Task<List<MessageInfo>> ReadMessagesAsync(NpgsqlCommand command)
     {
         List<MessageInfo> messages = new List<MessageInfo>();

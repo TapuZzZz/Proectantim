@@ -3,17 +3,16 @@ namespace ChatServer;
 public class OnlineUsers
 {
     private readonly Dictionary<int, ClientConnection> _connections = new Dictionary<int, ClientConnection>();
-    private readonly object _lock = new object();
+    private readonly object _lock = new object();  // בשביל למנוע RACE CONDITION
 
     public void Add(int userId, ClientConnection connection)
     {
-        lock (_lock) // בשביל למנוע RACE CONDITION
+        lock (_lock)
         {
             _connections[userId] = connection;
         }
     }
 
-    // מוחק רק אם זה אותו חיבור, ולא חיבור חדש יותר של אותו משתמש
     public void Remove(int userId, ClientConnection connection)
     {
         lock (_lock)
@@ -25,7 +24,6 @@ public class OnlineUsers
         }
     }
 
-    // מחזיר את החיבור של המשתמש, או null אם הוא לא מחובר
     public ClientConnection? Find(int userId)
     {
         lock (_lock)

@@ -2,6 +2,15 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { ChatConnection } from './chatConnection'
+
+
+// שולח הודעה מהשרת למסך
+function sendToScreen(message: object): void {
+  for (const window of BrowserWindow.getAllWindows()) {
+    window.webContents.send('chat:message', message)
+  }
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -49,10 +58,13 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
   createWindow()
+
+  const chat = new ChatConnection(sendToScreen)
+  chat.connect()
+
+  // בקשה מהמסך → נשלחת לשרת
+  ipcMain.on('chat:send', (_event, request) => chat.send(request))
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

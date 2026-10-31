@@ -53,6 +53,7 @@ public class Response
     public bool Success { get; set; }
     public string Message { get; set; } = "";
     public int UserId { get; set; }
+    public string? Username { get; set; }
     public int SenderId { get; set; }
     public string? SenderName { get; set; }
     public string? Content { get; set; }
